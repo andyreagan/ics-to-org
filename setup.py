@@ -1,13 +1,17 @@
 from setuptools import setup
 import os
 
-# Read the contents of README.org
-with open(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'README.org'), encoding='utf-8') as f:
-    long_description = f.read()
+# Read the contents of README.org if it exists, otherwise use a simple description
+readme_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'README.org')
+try:
+    with open(readme_path, encoding='utf-8') as f:
+        long_description = f.read()
+except FileNotFoundError:
+    long_description = "Sync iCalendar events to org-mode files while preserving your notes."
 
 setup(
     name="ics-to-org",
-    version="0.1.0",
+    version="0.1.2",
     author="Andy Reagan",
     author_email="andy@andyreagan.com",
     description="Sync iCalendar events to org-mode files while preserving your notes",
@@ -16,6 +20,7 @@ setup(
     url="https://github.com/andyreagan/ics-to-org",
     py_modules=["sync_calendar"],
     package_dir={"": "src"},
+    include_package_data=True,
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
