@@ -6,6 +6,16 @@ Sync iCalendar events to org-mode files while preserving your notes.
 
 ** Installation
 
+This tool requires both the Python package and the icsorg npm package:
+
+1. Install the icsorg npm package:
+
+#+begin_src bash
+npm install -g icsorg
+#+end_src
+
+2. Install the Python package:
+
 #+begin_src bash
 pip install ics-to-org
 #+end_src

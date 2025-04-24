@@ -29,7 +29,11 @@ setup(
         ],
     },
     install_requires=[
-        "icsorg",  # For converting ics to org
+        # No direct dependency on icsorg as it's not available on PyPI
+        # It can be installed separately with: npm install -g icsorg
     ],
+    extras_require={
+        "dev": ["pytest", "pytest-cov"],
+    },
     python_requires=">=3.8",
 )
