@@ -1,0 +1,2 @@
+[console_scripts]
+sync_calendar = sync_calendar:main
