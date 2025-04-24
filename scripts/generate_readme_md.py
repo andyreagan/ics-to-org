@@ -11,12 +11,7 @@ def convert_org_to_md(org_content):
     """Convert org-mode syntax to markdown"""
     md_content = []
     
-    # Add badges at the top
-    md_content.append("# ics-to-org")
-    md_content.append("")
-    md_content.append("[![Tests](https://github.com/andyreagan/ics-to-org/actions/workflows/python-test-publish.yml/badge.svg)](https://github.com/andyreagan/ics-to-org/actions/workflows/python-test-publish.yml)")
-    md_content.append("[![PyPI version](https://badge.fury.io/py/ics-to-org.svg)](https://badge.fury.io/py/ics-to-org)")
-    md_content.append("")
+    # We'll handle titles and badges in the conversion process
     
     # Process each line
     in_src_block = False
@@ -24,14 +19,24 @@ def convert_org_to_md(org_content):
         # Skip CREATED and UPDATED lines
         if line.startswith('#+CREATED:') or line.startswith('#+UPDATED:'):
             continue
+            
+        # Handle HTML tags (especially for badges)
+        if line.startswith('#+HTML:'):
+            md_content.append(line.replace('#+HTML:', '').strip())
+            continue
         
-        # Convert headers
+        # Convert org link syntax to markdown
+        if '[[' in line and ']]' in line:
+            # Convert org links to markdown links
+            line = re.sub(r'\[\[(.*?)\]\[(.*?)\]\]', r'[\2](\1)', line)
+        
+        # Convert headers - first level header will be # not ##
         if line.startswith('* '):
-            md_content.append('## ' + line[2:])
+            md_content.append('# ' + line[2:])
         elif line.startswith('** '):
-            md_content.append('### ' + line[3:])
+            md_content.append('## ' + line[3:])
         elif line.startswith('*** '):
-            md_content.append('#### ' + line[4:])
+            md_content.append('### ' + line[4:])
         # Convert src blocks
         elif line.startswith('#+begin_src'):
             lang = line.replace('#+begin_src', '').strip()

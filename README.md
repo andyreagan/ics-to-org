@@ -1,13 +1,10 @@
 # ics-to-org
 
-[![Tests](https://github.com/andyreagan/ics-to-org/actions/workflows/python-test-publish.yml/badge.svg)](https://github.com/andyreagan/ics-to-org/actions/workflows/python-test-publish.yml)
-[![PyPI version](https://badge.fury.io/py/ics-to-org.svg)](https://badge.fury.io/py/ics-to-org)
-
-## ics-to-org
+<a href="https://github.com/andyreagan/ics-to-org/actions/workflows/python-test-publish.yml"><img src="https://github.com/andyreagan/ics-to-org/actions/workflows/python-test-publish.yml/badge.svg" alt="Tests"></a> <a href="https://badge.fury.io/py/ics-to-org"><img src="https://badge.fury.io/py/ics-to-org.svg" alt="PyPI version"></a>
 
 Sync iCalendar events to org-mode files while preserving your notes.
 
-### Installation
+## Installation
 
 This tool requires both the Python package and the icsorg npm package:
 
@@ -23,7 +20,7 @@ npm install -g icsorg
 pip install ics-to-org
 ```
 
-### Usage
+## Usage
 
 After installation, you can use the command-line tool:
 
@@ -45,7 +42,7 @@ This script will:
 - For events that are no longer in your calendar, mark them as "CANCELED" but keep them in your file
 - Sort all events by their scheduled time
 
-### Testing
+## Testing
 
 These test files cover several important scenarios:
 
