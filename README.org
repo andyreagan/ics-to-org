@@ -1,14 +1,24 @@
 #+CREATED: [2025-04-24 Thu 15:44]
-#+UPDATED: [2025-04-24 Thu 16:52]
+#+UPDATED: [2025-04-24 Thu 17:30]
 * ics-to-org
 
-Sync ics calendar to an org file while preserving notes.
-Code co-written by Claude.
+Sync iCalendar events to org-mode files while preserving your notes.
 
-To use this script, save it as sync_calendar.py and run it like this:
+** Installation
 
-#+begin_src 
-python3 sync_calendar.py --ics-url "https://outlook.office365.com/..." --org-file "meetings.org" --author "Andy Reagan" --email "me@andyreagan.com"
+#+begin_src bash
+pip install ics-to-org
+#+end_src
+
+** Usage
+
+After installation, you can use the command-line tool:
+
+#+begin_src bash
+sync_calendar --ics-url "https://outlook.office365.com/..." \
+              --org-file "meetings.org" \
+              --author "Your Name" \
+              --email "your.email@example.com"
 #+end_src
 
 
