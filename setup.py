@@ -11,12 +11,12 @@ except FileNotFoundError:
 
 setup(
     name="ics-to-org",
-    version="0.1.2",
+    version="0.1.3",
     author="Andy Reagan",
     author_email="andy@andyreagan.com",
     description="Sync iCalendar events to org-mode files while preserving your notes",
     long_description=long_description,
-    long_description_content_type="text/x-org",
+    long_description_content_type="text/plain",
     url="https://github.com/andyreagan/ics-to-org",
     py_modules=["sync_calendar"],
     package_dir={"": "src"},
