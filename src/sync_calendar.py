@@ -3,8 +3,20 @@ import subprocess
 import re
 import os
 import tempfile
+import logging
 from datetime import datetime, timedelta
 import argparse
+import sys
+
+# Set up logging
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler(sys.stdout)
+    ]
+)
+logger = logging.getLogger('ics-to-org')
 
 def run_icsorg(ics_url, output_file, author, email):
     """Run icsorg to get latest calendar data"""
@@ -21,6 +33,7 @@ def run_icsorg(ics_url, output_file, author, email):
 
 def parse_org_events(content):
     """Parse org-mode content into events dictionary"""
+    logger.debug("Parsing org events content with length: %d", len(content))
     events = {}
     lines = content.split('\n')
     
@@ -138,6 +151,7 @@ def add_cancelled_prefix(header):
 
 def merge_events(existing_events, new_events):
     """Merge existing and new events"""
+    logger.debug("Merging events - existing: %d, new: %d", len(existing_events), len(new_events))
     merged_events = {}
     processed_ids = set()
     
@@ -223,91 +237,135 @@ def merge_events(existing_events, new_events):
     
     return merged_events
 
-def is_all_day_event(scheduling, properties):
+def is_all_day_event(scheduling, properties) -> bool:
     """Check if an event is an all-day event"""
+    logger.debug("Checking if event is all-day: %s", scheduling)
     if not scheduling:
         return False
         
     # Check if already in all-day format (no time information)
-    if re.search(r'<\d{4}-\d{2}-\d{2}\s+\w+>(?:--<\d{4}-\d{2}-\d{2}\s+\w+>)?$', scheduling):
-        return True
+    try:
+        pattern = r'<\d{4}-\d{2}-\d{2}\s+\w+>(?:--<\d{4}-\d{2}-\d{2}\s+\w+>)?$'
+        result = re.search(pattern, scheduling)
+        if result:
+            logger.debug("Event is already in all-day format")
+            return True
+    except Exception as e:
+        logger.error("Error in all-day format check: %s", e)
+        logger.error("Scheduling value causing error: %r", scheduling)
     
     # Check for single day all-day event that starts and ends at 00:00
-    single_day_match = re.search(r'<\d{4}-\d{2}-\d{2}.*\s00:00>--<\d{4}-\d{2}-\d{2}.*\s00:00>', scheduling)
-    if single_day_match:
-        return True
+    try:
+        single_day_match = re.search(r'<\d{4}-\d{2}-\d{2}.*\s00:00>--<\d{4}-\d{2}-\d{2}.*\s00:00>', scheduling)
+        if single_day_match:
+            logger.debug("Event is single day all-day event (00:00 to 00:00)")
+            return True
+    except Exception as e:
+        logger.error("Error in single day check: %s", e)
         
     # Check for single time with 00:00 (e.g., start of all-day event)
-    if re.search(r'<\d{4}-\d{2}-\d{2}.*\s00:00>', scheduling) and not re.search(r'--', scheduling):
-        return True
+    try:
+        if re.search(r'<\d{4}-\d{2}-\d{2}.*\s00:00>', scheduling) and not re.search(r'--', scheduling):
+            logger.debug("Event has single time 00:00, likely all-day")
+            return True
+    except Exception as e:
+        logger.error("Error in single time check: %s", e)
         
     # Check for multi-day event that starts and ends at 00:00
-    if re.search(r'<\d{4}-\d{2}-\d{2}.*\s00:00>--<\d{4}-\d{2}-\d{2}', scheduling):
-        # Only if both times are 00:00 or there are no specific times
-        if re.search(r'00:00>--.*00:00', scheduling) or not re.search(r'\d{2}:\d{2}', scheduling):
-            return True
+    try:
+        if re.search(r'<\d{4}-\d{2}-\d{2}.*\s00:00>--<\d{4}-\d{2}-\d{2}', scheduling):
+            # Only if both times are 00:00 or there are no specific times
+            if re.search(r'00:00>--.*00:00', scheduling) or not re.search(r'\d{2}:\d{2}', scheduling):
+                logger.debug("Event is multi-day all-day event")
+                return True
+    except Exception as e:
+        logger.error("Error in multi-day event check: %s", e)
     
     # Check for ALLDAY property (though according to tests this isn't reliable)
     for prop in properties:
         if prop.strip().startswith(':ALLDAY:') and 'true' in prop.lower():
+            logger.debug("Event has ALLDAY property")
             return True
     
+    logger.debug("Event is not all-day")
     return False
 
 def format_scheduling(scheduling):
     """Format scheduling line, removing time for all-day events"""
+    logger.debug("Formatting scheduling line: %s", scheduling)
     if not scheduling:
         return scheduling
     
     # Skip if it's already in the correct all-day format (no time information)
-    if re.search(r'<\d{4}-\d{2}-\d{2}\s+\w+>(?:--<\d{4}-\d{2}-\d{2}\s+\w+>)?$', scheduling):
-        return scheduling
+    try:
+        pattern = r'<\d{4}-\d{2}-\d{2}\s+\w+>(?:--<\d{4}-\d{2}-\d{2}\s+\w+>)?$'
+        if re.search(pattern, scheduling):
+            logger.debug("Scheduling already in all-day format, returning as-is")
+            return scheduling
+    except Exception as e:
+        logger.error("Error in regex pattern match: %s", e)
+        logger.error("Scheduling value: %r", scheduling)
     
     # For multi-day all-day events, handle specially to match expected test output
-    multi_day_match = re.search(r'<(\d{4}-\d{2}-\d{2})\s+(\w+)\s+00:00>--<(\d{4}-\d{2}-\d{2})\s+(\w+)(?:\s+00:00)?>', scheduling)
-    if multi_day_match:
-        start_date = multi_day_match.group(1)
-        start_day = multi_day_match.group(2)
-        end_date = multi_day_match.group(3)
-        end_day = multi_day_match.group(4)
-        
-        try:
-            # Parse start and end dates to calculate duration
-            start_dt = datetime.strptime(f"{start_date}", '%Y-%m-%d')
-            end_dt = datetime.strptime(f"{end_date}", '%Y-%m-%d')
+    try:
+        multi_day_match = re.search(r'<(\d{4}-\d{2}-\d{2})\s+(\w+)\s+00:00>--<(\d{4}-\d{2}-\d{2})\s+(\w+)(?:\s+00:00)?>', scheduling)
+        if multi_day_match:
+            start_date = multi_day_match.group(1)
+            start_day = multi_day_match.group(2)
+            end_date = multi_day_match.group(3)
+            end_day = multi_day_match.group(4)
             
-            # Calculate the real duration (end date is exclusive in iCalendar format)
-            duration = (end_dt - start_dt).days
-            
-            if duration == 1:
-                # If it's a one-day event (e.g., Sun 00:00 to Mon 00:00 is just Sunday)
-                return f'<{start_date} {start_day}>'
-            else:
-                # For multi-day events, adjust the end date to be the last inclusive day
-                # Subtract 1 day from end date (exclusive to inclusive conversion)
-                adjusted_end_dt = end_dt - timedelta(days=1)
-                adjusted_end_date = adjusted_end_dt.strftime('%Y-%m-%d')
+            try:
+                # Parse start and end dates to calculate duration
+                start_dt = datetime.strptime(f"{start_date}", '%Y-%m-%d')
+                end_dt = datetime.strptime(f"{end_date}", '%Y-%m-%d')
                 
-                # Get the correct day abbreviation
-                day_map = {
-                    0: 'Mon', 1: 'Tue', 2: 'Wed', 3: 'Thu', 4: 'Fri', 5: 'Sat', 6: 'Sun'
-                }
-                adjusted_end_day = day_map[adjusted_end_dt.weekday()]
+                # Calculate the real duration (end date is exclusive in iCalendar format)
+                duration = (end_dt - start_dt).days
+                logger.debug("Multi-day event duration: %d days", duration)
                 
-                # Format for multi-day, with end date inclusive
-                return f'<{start_date} {start_day}>--<{adjusted_end_date} {adjusted_end_day}>'
-        except ValueError:
-            # If date parsing fails, just return as is
-            return scheduling
+                if duration == 1:
+                    # If it's a one-day event (e.g., Sun 00:00 to Mon 00:00 is just Sunday)
+                    result = f'<{start_date} {start_day}>'
+                    logger.debug("Formatted as one-day event: %s", result)
+                    return result
+                else:
+                    # For multi-day events, adjust the end date to be the last inclusive day
+                    # Subtract 1 day from end date (exclusive to inclusive conversion)
+                    adjusted_end_dt = end_dt - timedelta(days=1)
+                    adjusted_end_date = adjusted_end_dt.strftime('%Y-%m-%d')
+                    
+                    # Get the correct day abbreviation
+                    day_map = {
+                        0: 'Mon', 1: 'Tue', 2: 'Wed', 3: 'Thu', 4: 'Fri', 5: 'Sat', 6: 'Sun'
+                    }
+                    adjusted_end_day = day_map[adjusted_end_dt.weekday()]
+                    
+                    # Format for multi-day, with end date inclusive
+                    result = f'<{start_date} {start_day}>--<{adjusted_end_date} {adjusted_end_day}>'
+                    logger.debug("Formatted as multi-day event: %s", result)
+                    return result
+            except ValueError as e:
+                # If date parsing fails, just return as is
+                logger.error("Error parsing dates: %s", e)
+                return scheduling
+    except Exception as e:
+        logger.error("Error in multi-day processing: %s", e)
     
     # For single-day all-day events, format as <YYYY-MM-DD DAY> without time
-    single_day_match = re.search(r'<(\d{4}-\d{2}-\d{2})\s+(\w+)\s+00:00>', scheduling)
-    if single_day_match:
-        date_str = single_day_match.group(1)
-        day_str = single_day_match.group(2)
-        return f'<{date_str} {day_str}>'
+    try:
+        single_day_match = re.search(r'<(\d{4}-\d{2}-\d{2})\s+(\w+)\s+00:00>', scheduling)
+        if single_day_match:
+            date_str = single_day_match.group(1)
+            day_str = single_day_match.group(2)
+            result = f'<{date_str} {day_str}>'
+            logger.debug("Formatted as single all-day event: %s", result)
+            return result
+    except Exception as e:
+        logger.error("Error in single-day processing: %s", e)
     
     # Return original scheduling for events that don't match all-day patterns
+    logger.debug("No formatting applied, returning original")
     return scheduling
 
 def events_to_org(events, format_dates=True):
@@ -317,6 +375,7 @@ def events_to_org(events, format_dates=True):
         events: Dictionary of events to convert
         format_dates: Whether to format all-day and multi-day events (default: True)
     """
+    logger.debug("Converting %d events to org format (format_dates=%s)", len(events), format_dates)
     org_content = []
     
     # Sort events by scheduled time
@@ -356,7 +415,10 @@ def events_to_org(events, format_dates=True):
         # Format scheduling differently for all-day events if format_dates is True
         if event['scheduling']:
             if all_day and format_dates:
-                org_content.append(format_scheduling(event['scheduling']))
+                formatted = format_scheduling(event['scheduling'])
+                logger.debug("Event %s scheduling formatted from %r to %r", 
+                            event_id[:8], event['scheduling'], formatted)
+                org_content.append(formatted)
             else:
                 org_content.append(event['scheduling'])
                 
@@ -378,6 +440,7 @@ def events_to_org(events, format_dates=True):
     return '\n'.join(org_content).rstrip()
 
 def main():
+    logger.info("Starting ics-to-org sync")
     parser = argparse.ArgumentParser(description='Sync org-mode file with icsorg calendar data')
     parser.add_argument('--ics-url', required=True, help='iCalendar URL')
     parser.add_argument('--org-file', required=True, help='Org file to update')
@@ -385,7 +448,16 @@ def main():
     parser.add_argument('--email', required=True, help='Author email')
     parser.add_argument('--no-format-dates', action='store_true',
                      help='Disable the formatting of all-day and multi-day events (keep raw timestamps)')
+    parser.add_argument('--debug', action='store_true',
+                     help='Enable debug logging')
     args = parser.parse_args()
+    
+    # Set logging level based on debug flag
+    if args.debug:
+        logger.setLevel(logging.DEBUG)
+        logger.debug("Debug logging enabled")
+    else:
+        logger.setLevel(logging.INFO)
     
     # Get temp file name for icsorg output
     with tempfile.NamedTemporaryFile(suffix='.org', delete=False) as temp_file:
@@ -419,12 +491,20 @@ def main():
         
         # Convert back to org format, respecting the date formatting option
         format_dates = not args.no_format_dates
+        logger.debug("Using format_dates=%s", format_dates)
         merged_content = events_to_org(merged_events, format_dates=format_dates)
+        
+        # Log a sample of the output
+        if args.debug:
+            logger.debug("First 300 chars of merged content: %s", merged_content[:300])
+            logger.debug("Last 300 chars of merged content: %s", merged_content[-300:] if len(merged_content) > 300 else merged_content)
+            logger.debug("Merged content has %d lines", len(merged_content.splitlines()))
         
         # Write merged content
         with open(args.org_file, 'w') as f:
             f.write(merged_content)
         
+        logger.info("Successfully merged calendar data with existing notes in %s!", args.org_file)
         print(f"Successfully merged calendar data with existing notes in {args.org_file}!")
     
     finally:
