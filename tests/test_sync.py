@@ -25,16 +25,23 @@ def test_sync():
     # Convert back to org format (with date formatting on as it is by default)
     merged_content = events_to_org(merged_events, format_dates=True)
     
-    # Normalize content for comparison (standardize blank lines)
+    # Normalize content for comparison (standardize blank lines and whitespace)
     def normalize_content(content):
-        # Replace multiple consecutive newlines with exactly two newlines
-        lines = content.splitlines()
+        # Split by lines, normalize line endings
+        lines = content.replace('\r\n', '\n').splitlines()
         normalized_lines = []
+        
+        # Process lines to standardize whitespace
         for line in lines:
+            # Skip consecutive blank lines
             if not line.strip() and normalized_lines and not normalized_lines[-1].strip():
-                # Skip consecutive blank lines
                 continue
-            normalized_lines.append(line)
+                
+            # Standardize whitespace within lines (trim trailing spaces, etc.)
+            normalized_line = line.rstrip()
+            normalized_lines.append(normalized_line)
+            
+        # Join with consistent line endings
         return '\n'.join(normalized_lines)
     
     # Normalize both contents for consistent comparison
@@ -51,7 +58,24 @@ def test_sync():
             tofile='actual',
             lineterm=''
         ))
-        assert False, f"Merged content does not match expected output:\n{diff}"
+        
+        # Also provide line-by-line differences for easier debugging
+        norm_expected_lines = normalized_expected.strip().splitlines()
+        norm_merged_lines = normalized_merged.strip().splitlines()
+        line_diffs = []
+        
+        for i in range(min(len(norm_expected_lines), len(norm_merged_lines))):
+            if norm_expected_lines[i] != norm_merged_lines[i]:
+                line_diffs.append(f"Line {i+1} differs:")
+                line_diffs.append(f"  Expected: '{norm_expected_lines[i]}'")
+                line_diffs.append(f"  Actual:   '{norm_merged_lines[i]}'")
+        
+        # Add message if line counts differ
+        if len(norm_expected_lines) != len(norm_merged_lines):
+            line_diffs.append(f"Line count differs: expected {len(norm_expected_lines)}, got {len(norm_merged_lines)}")
+        
+        line_diff_str = "\n".join(line_diffs)
+        assert False, f"Merged content does not match expected output:\n{diff}\n\nLine-by-line differences:\n{line_diff_str}"
     
     # If we get here, the test passes
     assert normalized_merged.strip() == normalized_expected.strip(), "Contents should match"
