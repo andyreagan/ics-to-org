@@ -11,7 +11,7 @@ except FileNotFoundError:
 
 setup(
     name="ics-to-org",
-    version="0.1.6",
+    version="0.2.0",
     author="Andy Reagan",
     author_email="andy@andyreagan.com",
     description="Sync iCalendar events to org-mode files while preserving your notes",

@@ -1,5 +1,5 @@
 #+CREATED: [2025-04-24 Thu 15:44]
-#+UPDATED: [2025-04-24 Thu 19:20]
+#+UPDATED: [2025-04-24 Thu 20:58]
 * ics-to-org
 
 #+HTML: <a href="https://github.com/andyreagan/ics-to-org/actions/workflows/python-test-publish.yml"><img src="https://github.com/andyreagan/ics-to-org/actions/workflows/python-test-publish.yml/badge.svg" alt="Tests"></a> <a href="https://badge.fury.io/py/ics-to-org"><img src="https://badge.fury.io/py/ics-to-org.svg" alt="PyPI version"></a>
@@ -8,7 +8,7 @@ Sync iCalendar events to org-mode files while preserving your notes.
 
 ** Installation
 
-This tool requires both the Python package and the icsorg npm package:
+This tool requires both this Python package and the [[https://github.com/theophilusx/icsorg][icsorg npm package]]:
 
 1. Install the icsorg npm package:
 
@@ -33,6 +33,19 @@ sync_calendar --ics-url "https://outlook.office365.com/..." \
               --email "your.email@example.com"
 #+end_src
 
+Command-line options:
+
+| Option           | Description                                                 |
+|------------------+-------------------------------------------------------------|
+| --ics-url        | URL of the iCalendar feed (required)                        |
+| --org-file       | Path to the org file to update (required)                   |
+| --author         | Your name, used in the org file (required)                  |
+| --email          | Your email, used in the org file (required)                 |
+| --no-format-dates | Disable the formatting of all-day and multi-day events      |
+
+By default, the script formats all-day events as =<2025-04-27 Sun>= (without time) 
+and multi-day events as =<2025-04-27 Sun>--<2025-04-28 Mon>= (inclusive dates). 
+If you prefer to keep the raw timestamps with the 00:00 times, use the =--no-format-dates= option.
 
 This script will:
 
@@ -41,6 +54,8 @@ This script will:
   - Update the header, properties, and scheduling from the calendar
   - If the event has a description in the calendar, update the #+begin_agenda #+end_agenda block
   - Preserve any notes you've made outside of the agenda block
+  - Format all-day events without time information (unless --no-format-dates is used)
+  - Format multi-day events with inclusive end dates (unless --no-format-dates is used)
 - For events that are no longer in your calendar, mark them as "CANCELED" but keep them in your file
 - Sort all events by their scheduled time
 
