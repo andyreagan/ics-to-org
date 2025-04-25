@@ -49,7 +49,7 @@ def parse_org_events(content):
                     'header': current_event['header'],
                     'properties': current_event['properties'],
                     'scheduling': current_event['scheduling'],
-                    'content': '\n'.join(current_content)
+                    'content': '\n'.join(current_content).strip()
                 }
             
             # Start new event
@@ -87,7 +87,7 @@ def parse_org_events(content):
             'header': current_event['header'],
             'properties': current_event['properties'],
             'scheduling': current_event['scheduling'],
-            'content': '\n'.join(current_content)
+            'content': '\n'.join(current_content).strip()
         }
     
     return events
@@ -98,6 +98,12 @@ def extract_agenda(content):
     match = agenda_pattern.search(content)
     if match:
         return match.group(1).strip()
+    
+    # Also check for empty agenda block
+    empty_agenda_pattern = re.compile(r'#\+begin_agenda\s*\n#\+end_agenda', re.IGNORECASE)
+    if empty_agenda_pattern.search(content):
+        return ""
+        
     return None
 
 def update_agenda(content, new_agenda):
@@ -193,12 +199,12 @@ def merge_events(existing_events, new_events):
             new_content = event['content'].strip()
             if new_content:
                 # Create content with agenda block
-                content = f'#+begin_agenda\n{new_content}\n#+end_agenda\n\n'
+                content = f'#+begin_agenda\n{new_content}\n#+end_agenda'
             else:
                 # If no content, use title as fallback
                 new_description = extract_title_content(event['header'])
                 if new_description:
-                    content = f'#+begin_agenda\n{new_description}\n#+end_agenda\n\n'
+                    content = f'#+begin_agenda\n{new_description}\n#+end_agenda'
                 else:
                     content = ''
                 
@@ -308,7 +314,7 @@ def format_scheduling(scheduling):
     
     # For multi-day all-day events, handle specially to match expected test output
     try:
-        multi_day_match = re.search(r'<(\d{4}-\d{2}-\d{2})\s+(\w+)\s+00:00>--<(\d{4}-\d{2}-\d{2})\s+(\w+)(?:\s+00:00)?>', scheduling)
+        multi_day_match = re.search(r'<(\d{4}-\d{2}-\d{2})\s+(\w+)(?:\s+00:00)?>--<(\d{4}-\d{2}-\d{2})\s+(\w+)(?:\s+00:00)?>', scheduling)
         if multi_day_match:
             start_date = multi_day_match.group(1)
             start_day = multi_day_match.group(2)
@@ -354,7 +360,7 @@ def format_scheduling(scheduling):
     
     # For single-day all-day events, format as <YYYY-MM-DD DAY> without time
     try:
-        single_day_match = re.search(r'<(\d{4}-\d{2}-\d{2})\s+(\w+)\s+00:00>', scheduling)
+        single_day_match = re.search(r'<(\d{4}-\d{2}-\d{2})\s+(\w+)(?:\s+00:00)?>', scheduling)
         if single_day_match:
             date_str = single_day_match.group(1)
             day_str = single_day_match.group(2)
@@ -409,6 +415,11 @@ def events_to_org(events, format_dates=True):
         # Check if this is an all-day event
         all_day = is_all_day_event(event['scheduling'], event['properties'])
         
+        # Add a blank line before each event (except the first one)
+        if i > 0:
+            org_content.append('')
+            org_content.append('')
+        
         org_content.append(event['header'])
         org_content.append('\n'.join(event['properties']))
         
@@ -426,15 +437,6 @@ def events_to_org(events, format_dates=True):
             # Don't add extra newline if the content already has one at the end
             content_to_add = event['content'].rstrip()
             org_content.append(content_to_add)
-        
-        # Add exactly two blank lines between events (to create one blank line in the output)
-        if i < len(sorted_events) - 1:
-            # Make sure we're not adding more blank lines than needed
-            while org_content and org_content[-1] == '':
-                org_content.pop()
-            
-            org_content.append('')
-            org_content.append('')
     
     # Remove trailing newlines at the end of the file
     return '\n'.join(org_content).rstrip()
