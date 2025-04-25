@@ -5,9 +5,10 @@
 :STATUS:        CONFIRMED
 :LOCATION:      https://massmutual.zoom.us/j/99432494496?pwd=atmTRezz1GgFylVYI0sp6ikirAp0JD.1&from=addon
 :DURATION:      01:00 hh:mm
-:DESCRIPTION:   Extended discussion on feed implementation with focus on policy year standardization and additional fields requested by stakeholders.
 :END:
 <2025-04-24 Thu 14:00-15:00>
+
+Extended discussion on feed implementation with focus on policy year standardization and additional fields requested by stakeholders.
 
 * Weekly Team Sync
 :PROPERTIES:
@@ -16,9 +17,10 @@
 :STATUS:        CONFIRMED
 :LOCATION:      https://massmutual.zoom.us/j/98765432123
 :DURATION:      01:00 hh:mm
-:DESCRIPTION:   Regular team sync to discuss weekly progress and blockers.
 :END:
 <2025-04-25 Fri 10:00-11:00>
+
+Regular team sync to discuss weekly progress and blockers.
 
 * New Project Kickoff Meeting
 :PROPERTIES:
@@ -27,6 +29,34 @@
 :STATUS:        CONFIRMED
 :LOCATION:      https://massmutual.zoom.us/j/44433322211
 :DURATION:      01:30 hh:mm
-:DESCRIPTION:   Initial meeting to discuss the upcoming project requirements, timeline, and resource allocation.
 :END:
 <2025-04-26 Sat 09:00-10:30>
+
+Initial meeting to discuss the upcoming project requirements, timeline, and resource allocation.
+
+* Full Day Conference: Innovative Tech Solutions
+:PROPERTIES:
+:ICAL_EVENT:    t
+:ID:            040000008200E00074C5B7101A82E00800000000BADC0FFE0FAFDB01000000000000000010000000123456789ABCDEF01234567890ABCDE
+:STATUS:        CONFIRMED
+:LOCATION:      Main Convention Center
+:DURATION:      1 d 00:00 hh:mm
+:ALLDAY:        true
+:END:
+<2025-04-27 Sun 00:00>--<2025-04-28 Mon 00:00>
+
+Day-long conference featuring workshops and presentations on the latest technological innovations in the industry.
+
+* Multi Day Conference: Innovative Tech Solutions
+:PROPERTIES:
+:ICAL_EVENT:    t
+:ID:            040000008200E00074C5B7101A82E00800000000BADC0FFE0FAFDB01000000000000000010000000123456789ABCDEF01234567890ABCDF
+:STATUS:        CONFIRMED
+:LOCATION:      Main Convention Center
+:DURATION:      2 d 00:00 hh:mm
+:ALLDAY:        true
+:END:
+<2025-04-27 Sun 00:00>--<2025-04-29 Tue 00:00>
+
+Day-long conference featuring workshops and presentations on the latest technological innovations in the industry.
+

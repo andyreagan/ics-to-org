@@ -1,8 +1,8 @@
-* CANCELED: Past Meeting That Got Canceled
+* Past Meeting That Got Canceled
 :PROPERTIES:
 :ICAL_EVENT:    t
 :ID:            040000008200E00074C5B7101A82E00800000000503C5E0F0DAFDB01000000000000000010000000EF47E2D44EC75944C3FD5BDC306E979
-:STATUS:        CONFIRMED
+:STATUS:        CANCELLED
 :LOCATION:      Meeting Room 3B
 :DURATION:      01:00 hh:mm
 :END:
@@ -24,7 +24,6 @@ Discussion about project timeline and resource allocation
 :STATUS:        CONFIRMED
 :LOCATION:      https://massmutual.zoom.us/j/99432494496?pwd=atmTRezz1GgFylVYI0sp6ikirAp0JD.1&from=addon
 :DURATION:      01:00 hh:mm
-:DESCRIPTION:   Extended discussion on feed implementation with focus on policy year standardization and additional fields requested by stakeholders.
 :END:
 <2025-04-24 Thu 14:00-15:00>
 
@@ -44,7 +43,6 @@ Extended discussion on feed implementation with focus on policy year standardiza
 :STATUS:        CONFIRMED
 :LOCATION:      https://massmutual.zoom.us/j/98765432123
 :DURATION:      01:00 hh:mm
-:DESCRIPTION:   Regular team sync to discuss weekly progress and blockers.
 :END:
 <2025-04-25 Fri 10:00-11:00>
 
@@ -66,9 +64,56 @@ Regular team sync to discuss weekly progress and blockers.
 :STATUS:        CONFIRMED
 :LOCATION:      https://massmutual.zoom.us/j/44433322211
 :DURATION:      01:30 hh:mm
-:DESCRIPTION:   Initial meeting to discuss the upcoming project requirements, timeline, and resource allocation.
 :END:
 <2025-04-26 Sat 09:00-10:30>
 #+begin_agenda
 Initial meeting to discuss the upcoming project requirements, timeline, and resource allocation.
 #+end_agenda
+
+
+* Full Day Conference: Innovative Tech Solutions
+:PROPERTIES:
+:ICAL_EVENT:    t
+:ID:            040000008200E00074C5B7101A82E00800000000BADC0FFE0FAFDB01000000000000000010000000123456789ABCDEF01234567890ABCDE
+:STATUS:        CONFIRMED
+:LOCATION:      Main Convention Center
+:DURATION:      1 d 00:00 hh:mm
+:ALLDAY:        true
+:END:
+<2025-04-27 Sun>
+#+begin_agenda
+Day-long conference featuring workshops and presentations on the latest technological innovations in the industry.
+#+end_agenda
+
+* Multi Day Conference: Innovative Tech Solutions
+:PROPERTIES:
+:ICAL_EVENT:    t
+:ID:            040000008200E00074C5B7101A82E00800000000BADC0FFE0FAFDB01000000000000000010000000123456789ABCDEF01234567890ABCDF
+:STATUS:        CONFIRMED
+:LOCATION:      Main Convention Center
+:DURATION:      2 d 00:00 hh:mm
+:ALLDAY:        true
+:END:
+<2025-04-27 Sun>--<2025-04-28 Mon>
+#+begin_agenda
+Day-long conference featuring workshops and presentations on the latest technological innovations in the industry.
+#+end_agenda
+
+
+* CANCELLED: Strategy Planning Session
+:PROPERTIES:
+:ICAL_EVENT:    t
+:ID:            040000008200E00074C5B7101A82E0080000000070DEAD10BDEADB01000000000000000010000000ABCDEF1234567890ABCDEF123456789
+:STATUS:        CANCELLED
+:LOCATION:      Conference Room A
+:DURATION:      02:00 hh:mm
+:END:
+<2025-04-29 Tue 13:00-15:00>
+
+#+begin_agenda
+Meeting to discuss Q3 strategy and align on priorities for upcoming initiatives.
+#+end_agenda
+
+- Need to prepare slides for my section
+- Share latest metrics from Q2 performance
+
