@@ -30,7 +30,9 @@ After installation, you can use the command-line tool:
 sync_calendar --ics-url "https://outlook.office365.com/..." \
               --org-file "meetings.org" \
               --author "Your Name" \
-              --email "your.email@example.com"
+              --email "your.email@example.com" \
+              --days-forward 14 \
+              --days-backward 7
 #+end_src
 
 Command-line options:
@@ -41,6 +43,8 @@ Command-line options:
 | --org-file       | Path to the org file to update (required)                   |
 | --author         | Your name, used in the org file (required)                  |
 | --email          | Your email, used in the org file (required)                 |
+| --days-forward   | Number of days forward to fetch (default: 7)                |
+| --days-backward  | Number of days backward to fetch (default: 0)               |
 | --no-format-dates | Disable the formatting of all-day and multi-day events      |
 
 By default, the script formats all-day events as =<2025-04-27 Sun>= (without time)
@@ -49,7 +53,9 @@ If you prefer to keep the raw timestamps with the 00:00 times, use the =--no-for
 
 This script will:
 
-- Fetch the latest calendar data using icsorg
+- Fetch the latest calendar data using icsorg for the specified time range
+  - Default is 7 days forward and 0 days backward from the current date
+  - Customize with --days-forward and --days-backward options
 - For each event in your calendar:
   - Update the header, properties, and scheduling from the calendar
   - If the event has a description in the calendar, update the #+begin_agenda #+end_agenda block
@@ -57,6 +63,9 @@ This script will:
   - Format all-day events without time information (unless --no-format-dates is used)
   - Format multi-day events with inclusive end dates (unless --no-format-dates is used)
 - For events that are no longer in your calendar, mark them as "CANCELED" but keep them in your file
+- Preserve past events without changes
+  - Use --days-backward to specify how many days of past events to include for updates
+  - Past events beyond this window won't be modified
 - Sort all events by their scheduled time
 
 ** Testing
