@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 from sync_calendar import merge_events
 
 
@@ -115,6 +116,7 @@ def test_preserve_past_events():
         )
     }
 
+    # With default days_backward=0, past event should be preserved as-is
     merged = merge_events(past_event, new_events)
 
     assert len(merged) == 1
@@ -123,6 +125,52 @@ def test_preserve_past_events():
     assert merged["event1"].properties.get("LOCATION") is None
     assert merged["event1"].scheduling == "<2023-01-01 Sun 09:00-10:00>"
     assert merged["event1"].content == "Past event content"
+
+
+def test_past_events_with_days_backward():
+    """Test that days_backward parameter affects how past events are handled"""
+    from src.sync_calendar import OrgEvent
+
+    # Create a more recent past event (that could be within days_backward)
+    # Use a date that's 5 days in the past
+    past_date = (datetime.now() - timedelta(days=5)).strftime("%Y-%m-%d")
+    past_day = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][
+        (datetime.now() - timedelta(days=5)).weekday()
+    ]
+
+    recent_past_event = {
+        "event1": OrgEvent(
+            id="event1",
+            title="Recent Past Event",
+            properties={"ID": "event1", "STATUS": "CONFIRMED"},
+            scheduling=f"<{past_date} {past_day} 09:00-10:00>",  # 5 days ago
+            content="Original content",
+        )
+    }
+
+    # New version of the event with changes
+    new_events = {
+        "event1": OrgEvent(
+            id="event1",
+            title="Updated Event",
+            properties={"ID": "event1", "STATUS": "CONFIRMED", "LOCATION": "New Room"},
+            scheduling=f"<{past_date} {past_day} 10:00-11:00>",  # Same date, different time
+            content="Updated content",
+        )
+    }
+
+    # With days_backward=0, even recent past event should be preserved
+    merged_without_backward = merge_events(recent_past_event, new_events, days_backward=0)
+    assert (
+        merged_without_backward["event1"].title == "Recent Past Event"
+    )  # Original title preserved
+
+    # With days_backward=7, the 5-day old event should be updated
+    merged_with_backward = merge_events(recent_past_event, new_events, days_backward=7)
+    assert merged_with_backward["event1"].title == "Updated Event"  # Updated with new title
+    assert (
+        merged_with_backward["event1"].properties.get("LOCATION") == "New Room"
+    )  # Updated properties
 
 
 def test_agenda_block_creation():

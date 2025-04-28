@@ -192,13 +192,24 @@ def extract_description(properties: dict[str, str]) -> str | None:
     return properties.get("DESCRIPTION")
 
 
-def is_past_event(scheduling: str) -> bool:
-    """Check if an event is in the past"""
+def is_past_event(scheduling: str, days_backward: int = 0) -> bool:
+    """
+    Check if an event is in the past, considering the days_backward parameter.
+
+    Args:
+        scheduling: The scheduling timestamp string
+        days_backward: Number of days in the past to include (not considered past)
+
+    Returns:
+        True if the event is in the past (beyond days_backward), False otherwise
+    """
     match = re.search(r"<(\d{4}-\d{2}-\d{2})", scheduling)
     if match:
         try:
             event_date = datetime.strptime(match.group(1), "%Y-%m-%d").date()
-            return event_date < datetime.now().date()
+            # Calculate the threshold date by subtracting days_backward from today
+            threshold_date = datetime.now().date() - timedelta(days=days_backward)
+            return event_date < threshold_date
         except ValueError:
             pass
     return False
@@ -224,9 +235,16 @@ def add_cancelled_prefix(title: str) -> str:
 
 
 def merge_events(
-    existing_events: dict[str, OrgEvent], new_events: dict[str, OrgEvent]
+    existing_events: dict[str, OrgEvent], new_events: dict[str, OrgEvent], days_backward: int = 0
 ) -> dict[str, OrgEvent]:
-    """Merge existing and new events"""
+    """
+    Merge existing and new events
+
+    Args:
+        existing_events: Dictionary of existing events
+        new_events: Dictionary of new events
+        days_backward: Number of days in the past to include for updates (default: 0)
+    """
     logger.debug("Merging events - existing: %d, new: %d", len(existing_events), len(new_events))
     merged_events: dict[str, OrgEvent] = {}
     processed_ids = set()
@@ -239,8 +257,8 @@ def merge_events(
             # Event exists - update properties but keep user content
             existing_event = existing_events[event_id]
 
-            # Don't update events that are in the past
-            if is_past_event(existing_event.scheduling):
+            # Don't update events that are in the past (beyond days_backward)
+            if is_past_event(existing_event.scheduling, days_backward):
                 merged_events[event_id] = existing_event
                 continue
 
@@ -292,8 +310,8 @@ def merge_events(
     # Add events from existing file that weren't in new events (including canceled ones)
     for event_id, event in existing_events.items():
         if event_id not in processed_ids:
-            # Don't modify past events
-            if is_past_event(event.scheduling):
+            # Don't modify past events (beyond days_backward)
+            if is_past_event(event.scheduling, days_backward):
                 merged_events[event_id] = event
                 continue
 
@@ -603,8 +621,8 @@ def main() -> None:
         existing_events = parse_org_events(existing_content)
         new_events = parse_org_events(new_content)
 
-        # Merge events
-        merged_events = merge_events(existing_events, new_events)
+        # Merge events, respecting the days_backward parameter
+        merged_events = merge_events(existing_events, new_events, args.days_backward)
 
         # Convert back to org format, respecting the date formatting option
         format_dates = not args.no_format_dates

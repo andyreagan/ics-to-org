@@ -1,162 +1,239 @@
-# test_functional.py
+import sys
 import os
-import difflib
 import logging
-import pytest
 
-from sync_calendar import parse_org_events, merge_events, events_to_org, update_agenda
+# Add the src directory to path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../")))
+
+from src.sync_calendar import parse_org_events, merge_events, events_to_org, format_scheduling
 
 # Set up logging for tests
 logging.basicConfig(
     level=logging.DEBUG, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
-logger = logging.getLogger("test-sync")
+logger = logging.getLogger("test-new-functional")
 
 
-def load_file(filename):
-    test_dir = os.path.dirname(os.path.abspath(__file__))
-    file_path = os.path.join(test_dir, filename)
-    logger.debug("Loading file: %s", file_path)
+def test_end_to_end_processing():
+    """Test that the core functions work together correctly without exact output matching"""
+    # Create test input
+    existing_content = """* Test Event 1
+:PROPERTIES:
+:ICAL_EVENT:    t
+:ID:            test123
+:STATUS:        CONFIRMED
+:LOCATION:      Room A
+:DURATION:      01:00 hh:mm
+:END:
+<2025-05-01 Thu 10:00-11:00>
 
-    with open(file_path) as f:
-        content = f.read()
+#+begin_agenda
+Original description
+#+end_agenda
 
-    # Log the first 200 characters of the file for debugging
-    logger.debug("First 200 chars of %s: %r", filename, content[:200])
-    return content
+User notes that should be preserved
+"""
 
+    new_content = """* Updated Test Event 1
+:PROPERTIES:
+:ICAL_EVENT:    t
+:ID:            test123
+:STATUS:        CONFIRMED
+:LOCATION:      Room B
+:DURATION:      01:30 hh:mm
+:END:
+<2025-05-01 Thu 10:30-12:00>
 
-@pytest.mark.skip(reason="This test requires exact matching with specific test data")
-def test_functional_with_specific_data():
-    """End-to-end functional test of the core syncing logic"""
-    # Load test files
-    logger.debug("Starting test_functional")
-    existing_content = load_file("existing_org_file.org")
-    new_content = load_file("updated_ics_org.org")
-    expected_content = load_file("expected_output_org.org")
+Updated description
+"""
 
-    logger.debug(
-        f"Loaded test files - existing: {len(existing_content)} chars, new: {len(new_content)} chars, expected: {len(expected_content)} chars"
-    )
-
-    # Parse both files
+    # Run the core processing
     existing_events = parse_org_events(existing_content)
     new_events = parse_org_events(new_content)
-
-    # Merge events
-    logger.debug("Existing events IDs: %s", list(existing_events.keys()))
-    logger.debug("New events IDs: %s", list(new_events.keys()))
-
-    # Check for the problematic event specifically
-    problematic_id = "040000008200E00074C5B7101A82E00800000000A0895B0C7DAFDB01000000000000000010000000046BD7A11BA62741B6CEA3CCB373B966"
-    if problematic_id in existing_events:
-        logger.debug("Existing problematic event: %s", existing_events[problematic_id])
-    if problematic_id in new_events:
-        logger.debug("New problematic event: %s", new_events[problematic_id])
-
     merged_events = merge_events(existing_events, new_events)
-    logger.debug("Merged events IDs: %s", list(merged_events.keys()))
+    result = events_to_org(merged_events, format_dates=True)
 
-    # Special case for test: explicitly fix the problematic event to match expected output
-    problematic_id = "040000008200E00074C5B7101A82E00800000000A0895B0C7DAFDB01000000000000000010000000046BD7A11BA62741B6CEA3CCB373B966"
-    if problematic_id in merged_events and problematic_id in new_events:
-        logger.debug("Applying test-specific fix for problematic event")
-        # Force header from new events
-        merged_events[problematic_id]["header"] = new_events[problematic_id]["header"]
-        # Force scheduling from new events
-        merged_events[problematic_id]["scheduling"] = new_events[problematic_id]["scheduling"]
-        # Force properties from new events (especially duration)
-        merged_events[problematic_id]["properties"] = new_events[problematic_id]["properties"]
-        # Force agenda content from new events
-        existing_content = merged_events[problematic_id]["content"]
-        merged_events[problematic_id]["content"] = update_agenda(
-            existing_content, new_events[problematic_id]["content"]
-        )
+    logger.debug("Result of processing:\n%s", result)
 
-    # Convert back to org format (with date formatting on as it is by default)
-    merged_content = events_to_org(merged_events, format_dates=True)
+    # Check that key elements were updated properly
+    assert "* Updated Test Event 1" in result
+    assert "<2025-05-01 Thu 10:30-12:00>" in result
+    assert "Room B" in result
+    assert "01:30 hh:mm" in result
+    assert "#+begin_agenda" in result
+    assert "Updated description" in result
+    assert "#+end_agenda" in result
+    assert "User notes that should be preserved" in result
 
-    # Debug the output specifically to see differences
-    logger.debug("First 200 chars of merged content: %s", merged_content[:200])
 
-    # Normalize content for comparison (standardize blank lines and whitespace)
-    def normalize_content(content):
-        logger.debug("Normalizing content with length: %d", len(content))
+def test_canceled_events():
+    """Test that events missing from new content are marked as canceled"""
+    # Create test input with an event that will be canceled
+    existing_content = """* Test Event To Cancel
+:PROPERTIES:
+:ICAL_EVENT:    t
+:ID:            cancel123
+:STATUS:        CONFIRMED
+:LOCATION:      Room A
+:DURATION:      01:00 hh:mm
+:END:
+<2025-05-01 Thu 10:00-11:00>
 
-        # Split by lines, normalize line endings
-        lines = content.replace("\r\n", "\n").splitlines()
-        logger.debug("After splitting, got %d lines", len(lines))
-        normalized_lines = []
+Original description
+"""
 
-        # Process lines to standardize whitespace
-        for i, line in enumerate(lines):
-            # Skip consecutive blank lines
-            if not line.strip() and normalized_lines and not normalized_lines[-1].strip():
-                logger.debug("Skipping blank line at index %d", i)
-                continue
+    new_content = """* Different Event
+:PROPERTIES:
+:ICAL_EVENT:    t
+:ID:            different456
+:STATUS:        CONFIRMED
+:LOCATION:      Room B
+:DURATION:      01:00 hh:mm
+:END:
+<2025-05-01 Thu 14:00-15:00>
 
-            # Standardize whitespace within lines (trim trailing spaces, etc.)
-            normalized_line = line.rstrip()
-            normalized_lines.append(normalized_line)
+Some description
+"""
 
-        logger.debug("After normalization, got %d lines", len(normalized_lines))
+    # Run the core processing
+    existing_events = parse_org_events(existing_content)
+    assert len(existing_events) == 1
+    new_events = parse_org_events(new_content)
+    assert len(new_events) == 1
+    merged_events = merge_events(existing_events, new_events)
+    assert len(merged_events) == 2
+    result = events_to_org(merged_events, format_dates=True)
 
-        # Join with consistent line endings
-        result = "\n".join(normalized_lines)
-        logger.debug("Normalized content length: %d", len(result))
-        return result
+    logger.debug("Result of processing:\n%s", result)
 
-    # Normalize both contents for consistent comparison
-    normalized_merged = normalize_content(merged_content)
-    normalized_expected = normalize_content(expected_content)
+    # Check that the canceled event is marked correctly
+    assert "* CANCELLED: Test Event To Cancel" in result
+    assert ":STATUS:        CANCELLED" in result
 
-    # Check if merged content matches expected content
-    if normalized_merged.strip() != normalized_expected.strip():
-        # Show differences if they don't match
-        diff = "\n".join(
-            difflib.unified_diff(
-                expected_content.splitlines(),
-                merged_content.splitlines(),
-                fromfile="expected",
-                tofile="actual",
-                lineterm="",
-            )
-        )
 
-        # Also provide line-by-line differences for easier debugging
-        norm_expected_lines = normalized_expected.strip().splitlines()
-        norm_merged_lines = normalized_merged.strip().splitlines()
-        line_diffs = []
+def test_past_events_preserved():
+    """Test that past events are kept as is"""
+    # Create test input with a past event
+    past_content = """* Past Event
+:PROPERTIES:
+:ICAL_EVENT:    t
+:ID:            past123
+:STATUS:        CONFIRMED
+:LOCATION:      Room A
+:DURATION:      01:00 hh:mm
+:END:
+<2020-01-01 Wed 10:00-11:00>
 
-        # Log the entire content for debugging
-        logger.debug("Expected content (normalized):")
-        for i, line in enumerate(norm_expected_lines):
-            logger.debug("  %d: %s", i + 1, line)
+Original description
+"""
 
-        logger.debug("Actual content (normalized):")
-        for i, line in enumerate(norm_merged_lines):
-            logger.debug("  %d: %s", i + 1, line)
+    new_content = """* Updated Past Event
+:PROPERTIES:
+:ICAL_EVENT:    t
+:ID:            past123
+:STATUS:        CONFIRMED
+:LOCATION:      Room B
+:DURATION:      02:00 hh:mm
+:END:
+<2020-01-01 Wed 09:00-11:00>
 
-        for i in range(min(len(norm_expected_lines), len(norm_merged_lines))):
-            if norm_expected_lines[i] != norm_merged_lines[i]:
-                line_diffs.append(f"Line {i+1} differs:")
-                line_diffs.append(f"  Expected: '{norm_expected_lines[i]}'")
-                line_diffs.append(f"  Actual:   '{norm_merged_lines[i]}'")
-                # Log details to diagnose the issue
-                logger.debug("Difference at line %d:", i + 1)
-                logger.debug("  Expected: %r", norm_expected_lines[i])
-                logger.debug("  Actual:   %r", norm_merged_lines[i])
+Changed description
+"""
 
-        # Add message if line counts differ
-        if len(norm_expected_lines) != len(norm_merged_lines):
-            line_diffs.append(
-                f"Line count differs: expected {len(norm_expected_lines)}, got {len(norm_merged_lines)}"
-            )
+    # Run the core processing with default days_backward=0
+    past_events = parse_org_events(past_content)
+    new_events = parse_org_events(new_content)
+    merged_events = merge_events(past_events, new_events)
+    result = events_to_org(merged_events, format_dates=True)
 
-        line_diff_str = "\n".join(line_diffs)
-        assert (
-            False
-        ), f"Merged content does not match expected output:\n{diff}\n\nLine-by-line differences:\n{line_diff_str}"
+    logger.debug("Result of processing:\n%s", result)
 
-    # If we get here, the test passes
-    assert normalized_merged.strip() == normalized_expected.strip(), "Contents should match"
+    # Check that the past event is kept as-is
+    assert "* Past Event" in result
+    assert "<2020-01-01 Wed 10:00-11:00>" in result
+    assert "Room A" in result
+    assert "01:00 hh:mm" in result
+
+
+def test_past_events_with_days_backward():
+    """Test that past events can be updated when using days_backward"""
+    # Create a more recent past event (5 days ago)
+    from datetime import datetime, timedelta
+
+    past_date = (datetime.now() - timedelta(days=5)).strftime("%Y-%m-%d")
+    past_day = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][
+        (datetime.now() - timedelta(days=5)).weekday()
+    ]
+
+    recent_past_content = f"""* Recent Past Event
+:PROPERTIES:
+:ICAL_EVENT:    t
+:ID:            recent123
+:STATUS:        CONFIRMED
+:LOCATION:      Room A
+:DURATION:      01:00 hh:mm
+:END:
+<{past_date} {past_day} 10:00-11:00>
+
+Original description
+"""
+
+    updated_content = f"""* Updated Recent Event
+:PROPERTIES:
+:ICAL_EVENT:    t
+:ID:            recent123
+:STATUS:        CONFIRMED
+:LOCATION:      Room B
+:DURATION:      02:00 hh:mm
+:END:
+<{past_date} {past_day} 09:00-11:00>
+
+Changed description
+"""
+
+    # Run the core processing with days_backward=7 (should update the 5-day old event)
+    past_events = parse_org_events(recent_past_content)
+    new_events = parse_org_events(updated_content)
+    merged_events = merge_events(past_events, new_events, days_backward=7)
+    result = events_to_org(merged_events, format_dates=True)
+
+    logger.debug("Result of processing with days_backward=7:\n%s", result)
+
+    # Check that the recent past event was updated
+    assert "* Updated Recent Event" in result
+    assert f"<{past_date} {past_day} 09:00-11:00>" in result
+    assert "Room B" in result
+    assert "02:00 hh:mm" in result
+    assert "Changed description" in result
+
+
+def test_all_day_event_formatting():
+    """Test that all-day events are formatted correctly"""
+    # Create test input with an all-day event
+    all_day_content = """* All Day Event
+:PROPERTIES:
+:ICAL_EVENT:    t
+:ID:            allday123
+:STATUS:        CONFIRMED
+:LOCATION:      Room A
+:DURATION:      1 d 00:00 hh:mm
+:ALLDAY:        true
+:END:
+<2025-05-01 Thu 00:00>--<2025-05-02 Fri 00:00>
+
+All day description
+"""
+
+    # Run the core processing
+    all_day_events = parse_org_events(all_day_content)
+
+    # Extract the scheduling value directly to test the formatting function
+    event = all_day_events["allday123"]
+    scheduling = event.scheduling
+
+    # Test the format_scheduling function directly rather than the full pipeline
+    formatted = format_scheduling(scheduling)
+
+    # Check that the all-day event is formatted correctly
+    assert formatted == "<2025-05-01 Thu>"
+    assert "00:00" not in formatted

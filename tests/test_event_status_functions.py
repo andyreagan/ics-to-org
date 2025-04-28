@@ -23,6 +23,18 @@ def test_is_past_event():
     # Test with future date
     assert not is_past_event(f"<{future_date} {future_day} 09:00-10:00>")
 
+    # Test with past date but within days_backward window
+    past_5_days = (datetime.now() - timedelta(days=5)).strftime("%Y-%m-%d")
+    past_5_day = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][
+        (datetime.now() - timedelta(days=5)).weekday()
+    ]
+    assert is_past_event(
+        f"<{past_5_days} {past_5_day} 09:00-10:00>", days_backward=0
+    )  # Is past with 0 days
+    assert not is_past_event(
+        f"<{past_5_days} {past_5_day} 09:00-10:00>", days_backward=7
+    )  # Not past with 7 days
+
     # Test with invalid format
     assert not is_past_event("Not a date")
 
