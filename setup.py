@@ -2,9 +2,9 @@ from setuptools import setup
 import os
 
 # Read the contents of README.md, or use a simple description if not found
-readme_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'README.md')
+readme_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), "README.md")
 try:
-    with open(readme_path, encoding='utf-8') as f:
+    with open(readme_path, encoding="utf-8") as f:
         long_description = f.read()
 except FileNotFoundError:
     long_description = "Sync iCalendar events to org-mode files while preserving your notes."

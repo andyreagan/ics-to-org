@@ -1,10 +1,5 @@
-import sys
-import os
+from sync_calendar import parse_org_events
 
-# Add the src directory to path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
-
-from src.sync_calendar import parse_org_events
 
 def test_parse_simple_event():
     """Test parsing a single simple event"""
@@ -20,15 +15,16 @@ def test_parse_simple_event():
 This is event content.
 """
     events = parse_org_events(content)
-    
+
     assert len(events) == 1
-    assert 'event123' in events
-    
-    event = events['event123']
-    assert event['header'] == "* Simple Event"
-    assert len(event['properties']) == 6  # Including :PROPERTIES: and :END:
-    assert event['scheduling'] == "<2025-05-01 Thu 09:00-10:00>"
-    assert event['content'] == "This is event content."
+    assert "event123" in events
+
+    event = events["event123"]
+    assert event.title == "Simple Event"
+    assert len(event.properties) == 4  # Without :PROPERTIES: and :END:
+    assert event.scheduling == "<2025-05-01 Thu 09:00-10:00>"
+    assert event.content == "This is event content."
+
 
 def test_parse_multiple_events():
     """Test parsing multiple events"""
@@ -53,13 +49,14 @@ Content 1
 Content 2
 """
     events = parse_org_events(content)
-    
+
     assert len(events) == 2
-    assert 'event1' in events
-    assert 'event2' in events
-    
-    assert events['event1']['header'] == "* Event One"
-    assert events['event2']['header'] == "* Event Two"
+    assert "event1" in events
+    assert "event2" in events
+
+    assert events["event1"].title == "Event One"
+    assert events["event2"].title == "Event Two"
+
 
 def test_parse_event_with_agenda():
     """Test parsing event with agenda block"""
@@ -79,12 +76,13 @@ Multiple lines
 Regular notes
 """
     events = parse_org_events(content)
-    
+
     assert len(events) == 1
-    event = events['event123']
-    assert "#+begin_agenda" in event['content']
-    assert "Agenda content here" in event['content']
-    assert "Regular notes" in event['content']
+    event = events["event123"]
+    assert "#+begin_agenda" in event.content
+    assert "Agenda content here" in event.content
+    assert "Regular notes" in event.content
+
 
 def test_parse_cancelled_event():
     """Test parsing a cancelled event"""
@@ -99,10 +97,8 @@ def test_parse_cancelled_event():
 Some content
 """
     events = parse_org_events(content)
-    
+
     assert len(events) == 1
-    event = events['event123']
-    assert event['header'] == "* CANCELLED: Cancelled Event"
-    for prop in event['properties']:
-        if prop.strip().startswith(':STATUS:'):
-            assert "CANCELLED" in prop
+    event = events["event123"]
+    assert event.title == "CANCELLED: Cancelled Event"
+    assert event.properties.get("STATUS") == "CANCELLED"

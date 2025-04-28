@@ -1,8 +1,0 @@
-setup.py
-src/sync_calendar.py
-src/ics_to_org.egg-info/PKG-INFO
-src/ics_to_org.egg-info/SOURCES.txt
-src/ics_to_org.egg-info/dependency_links.txt
-src/ics_to_org.egg-info/entry_points.txt
-src/ics_to_org.egg-info/top_level.txt
-tests/test_sync.py

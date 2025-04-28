@@ -43,8 +43,8 @@ Command-line options:
 | --email          | Your email, used in the org file (required)                 |
 | --no-format-dates | Disable the formatting of all-day and multi-day events      |
 
-By default, the script formats all-day events as =<2025-04-27 Sun>= (without time) 
-and multi-day events as =<2025-04-27 Sun>--<2025-04-28 Mon>= (inclusive dates). 
+By default, the script formats all-day events as =<2025-04-27 Sun>= (without time)
+and multi-day events as =<2025-04-27 Sun>--<2025-04-28 Mon>= (inclusive dates).
 If you prefer to keep the raw timestamps with the 00:00 times, use the =--no-format-dates= option.
 
 This script will:
@@ -82,7 +82,7 @@ These test files cover several important scenarios:
 
 *How to Use These Test Files*
 
-#+begin_src 
+#+begin_src
 python -m pytest
 #+end_src
 
