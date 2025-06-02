@@ -56,6 +56,10 @@ jobs:
     - name: Generate README.md from README.org
       run: |
         python scripts/generate_readme_md.py
+    - name: Generate README.md from README.org
+      uses: docker://pandoc/core:3.5
+      with:
+        args: "-t markdown -f org -o README.md README.org"
     - name: Build and publish
       env:
         TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
