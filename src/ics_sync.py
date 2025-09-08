@@ -7,7 +7,8 @@ import re
 import sys
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from urllib.request import urlopen
+from urllib.error import HTTPError, URLError
+from urllib.request import Request, urlopen
 
 from icalendar import Calendar, Event
 
@@ -150,13 +151,87 @@ def parse_ics_event(component: Event, default_timezone: str | None = None) -> Or
 
 
 def fetch_ics(url: str) -> Calendar:
-    """Fetch and parse ICS file from URL."""
+    """Fetch and parse ICS file from URL or local file path."""
     logger.info(f"Fetching calendar from {url}")
-    with urlopen(url) as response:
-        ics_data = response.read()
 
-    cal = Calendar.from_ical(ics_data)
-    return cal
+    # Handle local file URLs and paths
+    if url.startswith("file://") or not url.startswith(("http://", "https://")):
+        file_path = url.replace("file://", "") if url.startswith("file://") else url
+        logger.info(f"Reading local file: {file_path}")
+        try:
+            with open(file_path, "rb") as f:
+                ics_data = f.read()
+            logger.info(f"Read {len(ics_data)} bytes from local file")
+        except FileNotFoundError:
+            logger.error(f"Local file not found: {file_path}")
+            raise
+        except Exception as e:
+            logger.error(f"Error reading local file: {e}")
+            raise
+    else:
+        # Handle HTTP/HTTPS URLs with proper headers for Outlook/Office365
+        headers = {
+            "User-Agent": (
+                "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
+                "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+            ),
+            "Accept": "text/calendar,application/calendar+xml,text/plain,*/*",
+            "Accept-Language": "en-US,en;q=0.9",
+            "Accept-Encoding": "gzip, deflate",
+            "Cache-Control": "no-cache",
+            "Pragma": "no-cache",
+        }
+
+        request = Request(url, headers=headers)
+
+        try:
+            with urlopen(request, timeout=30) as response:
+                # Check if we got HTML instead of ICS (common with auth issues)
+                content_type = response.headers.get("content-type", "").lower()
+                logger.debug(f"Response content-type: {content_type}")
+
+                ics_data = response.read()
+
+                # Check if response looks like HTML (redirect page)
+                if ics_data.startswith(b"<!DOCTYPE") or ics_data.startswith(b"<html"):
+                    logger.error("Received HTML response instead of ICS data")
+                    logger.error("This usually means:")
+                    logger.error("1. The calendar URL requires authentication")
+                    logger.error("2. The calendar is private and needs to be made public")
+                    logger.error("3. The URL has expired or is incorrect")
+                    logger.error(
+                        f"Response starts with: {ics_data[:200].decode('utf-8', errors='ignore')}"
+                    )
+                    raise ValueError("Received HTML redirect page instead of calendar data")
+
+                # Log some basic info about what we received
+                logger.debug(f"Received {len(ics_data)} bytes of data")
+                logger.debug(f"First 100 chars: {ics_data[:100].decode('utf-8', errors='ignore')}")
+
+        except HTTPError as e:
+            logger.error(f"HTTP Error {e.code}: {e.reason}")
+            if e.code == 401:
+                logger.error("Authentication required - calendar may be private")
+            elif e.code == 403:
+                logger.error("Access forbidden - calendar may be private or URL expired")
+            elif e.code == 404:
+                logger.error("Calendar not found - check the URL")
+            raise
+        except URLError as e:
+            logger.error(f"URL Error: {e.reason}")
+            raise
+        except Exception as e:
+            logger.error(f"Unexpected error fetching calendar: {e}")
+            raise
+
+    try:
+        cal = Calendar.from_ical(ics_data)
+        logger.info("Successfully parsed ICS calendar")
+        return cal
+    except Exception as e:
+        logger.error(f"Error parsing ICS data: {e}")
+        logger.error(f"Data starts with: {ics_data[:200].decode('utf-8', errors='ignore')}")
+        raise
 
 
 def parse_ics_calendar(
@@ -355,9 +430,16 @@ def sync_calendar(
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Sync ICS calendar to org-mode file, preserving user notes"
+        description="Sync ICS calendar to org-mode file, preserving user notes",
+        epilog="""
+Troubleshooting Outlook/Office365 calendars:
+1. Make sure your calendar is set to "Public" in Outlook settings
+2. Use the direct ICS URL from calendar settings, not the web view URL
+3. Try running with --debug to see detailed error messages
+4. If you get HTML instead of calendar data, the URL may require authentication
+        """,
     )
-    parser.add_argument("--ics-url", required=True, help="ICS calendar URL")
+    parser.add_argument("--ics-url", required=True, help="ICS calendar URL or local file path")
     parser.add_argument("--org-file", required=True, help="Org file path")
     parser.add_argument(
         "--days-forward", type=int, default=30, help="Days to look forward (default: 30)"
@@ -374,6 +456,28 @@ def main() -> None:
 
     try:
         sync_calendar(args.ics_url, args.org_file, args.days_forward, args.days_backward)
+    except ValueError as e:
+        if "HTML redirect page" in str(e):
+            logger.error("\n" + "=" * 60)
+            logger.error("OUTLOOK CALENDAR TROUBLESHOOTING:")
+            logger.error("=" * 60)
+            logger.error(
+                "Your Outlook calendar URL is returning a login page instead of calendar data."
+            )
+            logger.error("\nTo fix this:")
+            logger.error("1. Go to Outlook Web (outlook.office365.com)")
+            logger.error("2. Open your calendar")
+            logger.error("3. Click 'Add calendar' > 'From internet'")
+            logger.error("4. Right-click your calendar name > 'Settings and sharing'")
+            logger.error("5. Under 'Publish a calendar', click 'Publish'")
+            logger.error("6. Set permissions to 'Can view all details'")
+            logger.error("7. Copy the ICS link (ends with .ics)")
+            logger.error("\nAlternatively, try downloading the .ics file manually")
+            logger.error(
+                "and use: ics-sync --ics-url file:///path/to/calendar.ics --org-file events.org"
+            )
+        logger.error(f"Sync failed: {e}")
+        sys.exit(1)
     except Exception as e:
         logger.error(f"Sync failed: {e}")
         sys.exit(1)

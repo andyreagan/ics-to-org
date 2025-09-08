@@ -4,8 +4,7 @@ __pycache__
 .pytest_cache/
 .ruff_cache/
 
-# Generated files
-README.md
+# Generated files (kept in repo for PyPI description)
 
 # Build artifacts
 build/

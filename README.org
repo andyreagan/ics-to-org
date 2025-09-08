@@ -27,7 +27,7 @@ pip install ics-to-org
 Or with uv:
 
 #+begin_src bash
-uv add ics-to-org
+uv tool add ics-to-org
 #+end_src
 
 ** Usage
@@ -134,6 +134,36 @@ uvx --from ics-to-org ics-sync --ics-url "https://example.com/calendar.ics" \
 uv run ics-sync --ics-url "https://example.com/calendar.ics" \
                 --org-file "my-calendar.org"
 #+end_src
+
+*** Using with local .ics files
+If you can't access the calendar URL directly (common with Outlook), download the .ics file and use it locally:
+
+#+begin_src bash
+# Using a local file path
+ics-sync --ics-url "/path/to/downloaded/calendar.ics" \
+         --org-file "calendar.org"
+
+# Or with file:// URL
+ics-sync --ics-url "file:///path/to/calendar.ics" \
+         --org-file "calendar.org"
+#+end_src
+
+** Troubleshooting
+
+*** Outlook/Office365 Calendar Issues
+If you're having trouble accessing your Outlook calendar:
+
+1. **Download the .ics file manually**: Go to Outlook Web → Calendar → Share → Publish Calendar → Copy the ICS URL → Download it with your browser
+2. **Use the downloaded file**: =ics-sync --ics-url "/path/to/calendar.ics" --org-file "events.org"=
+3. **Check calendar permissions**: Make sure your calendar is set to "Public" with "Can view all details" in Outlook settings
+4. **Try the debug flag**: Run with =--debug= to see detailed error messages
+
+*** Common Error Messages
+- **"Received HTML response instead of ICS data"**: The calendar URL requires authentication or is private
+- **"Authentication required"**: Calendar is not publicly accessible
+- **"Object moved to here"**: Calendar URL has redirects/authentication issues
+
+For these issues, downloading the .ics file manually is the most reliable solution.
 
 ** Testing
 
