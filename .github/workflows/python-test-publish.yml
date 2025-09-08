@@ -63,7 +63,7 @@ jobs:
 
     - name: Generate README.md from README.org
       run: |
-        pandoc -f org -t markdown README.org -o README.md
+        ./scripts/generate_readme.sh
 
     - name: Build package
       run: |

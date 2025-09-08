@@ -27,7 +27,7 @@ pip install ics-to-org
 Or with uv:
 
 #+begin_src bash
-uv add ics-to-org
+uv tool add ics-to-org
 #+end_src
 
 ** Usage
