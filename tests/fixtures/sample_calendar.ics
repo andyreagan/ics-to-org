@@ -1,0 +1,55 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Test Corp//Test Calendar//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+
+BEGIN:VEVENT
+UID:standup-123@company.com
+DTSTART:20250115T140000Z
+DTEND:20250115T143000Z
+DTSTAMP:20250101T120000Z
+SUMMARY:Daily Standup
+DESCRIPTION:Quick sync with the development team.\nDiscuss progress and blockers.
+LOCATION:Zoom Room A
+STATUS:CONFIRMED
+CATEGORIES:Work,Development
+END:VEVENT
+
+BEGIN:VEVENT
+UID:project-meeting-456@company.com
+DTSTART:20250116T160000Z
+DTEND:20250116T170000Z
+DTSTAMP:20250101T120000Z
+SUMMARY:Project Planning Session
+DESCRIPTION:Q1 planning for the new product launch.\nReview timeline and resources.
+LOCATION:Conference Room B
+STATUS:CONFIRMED
+CATEGORIES:Work,Planning
+END:VEVENT
+
+BEGIN:VEVENT
+UID:allday-event-789@company.com
+DTSTART;VALUE=DATE:20250120
+DTEND;VALUE=DATE:20250121
+DTSTAMP:20250101T120000Z
+SUMMARY:Company Retreat
+DESCRIPTION:Annual company retreat in the mountains.\nTeam building and strategic planning.
+LOCATION:Mountain Lodge, Colorado
+STATUS:CONFIRMED
+CATEGORIES:Company
+END:VEVENT
+
+BEGIN:VEVENT
+UID:recurring-lunch-999@company.com
+DTSTART:20250117T180000Z
+DTEND:20250117T190000Z
+DTSTAMP:20250101T120000Z
+SUMMARY:Team Lunch
+DESCRIPTION:Monthly team lunch at the local restaurant.
+LOCATION:Downtown Bistro
+STATUS:CONFIRMED
+CATEGORIES:Social,Team
+END:VEVENT
+
+END:VCALENDAR

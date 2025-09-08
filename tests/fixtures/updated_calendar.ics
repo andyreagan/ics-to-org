@@ -1,0 +1,55 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Test Corp//Test Calendar//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+
+BEGIN:VEVENT
+UID:standup-123@company.com
+DTSTART:20250115T150000Z
+DTEND:20250115T153000Z
+DTSTAMP:20250102T120000Z
+SUMMARY:Daily Standup (Moved)
+DESCRIPTION:Quick sync with the development team - now 30 minutes later.\nDiscuss progress and blockers.
+LOCATION:Zoom Room B
+STATUS:CONFIRMED
+CATEGORIES:Work,Development
+END:VEVENT
+
+BEGIN:VEVENT
+UID:project-meeting-456@company.com
+DTSTART:20250116T160000Z
+DTEND:20250116T180000Z
+DTSTAMP:20250102T120000Z
+SUMMARY:Extended Project Planning Session
+DESCRIPTION:Q1 planning for the new product launch - extended session.\nReview timeline, resources, and budget.
+LOCATION:Conference Room B
+STATUS:CONFIRMED
+CATEGORIES:Work,Planning
+END:VEVENT
+
+BEGIN:VEVENT
+UID:allday-event-789@company.com
+DTSTART;VALUE=DATE:20250120
+DTEND;VALUE=DATE:20250121
+DTSTAMP:20250102T120000Z
+SUMMARY:Company Retreat
+DESCRIPTION:Annual company retreat in the mountains.\nTeam building and strategic planning.
+LOCATION:Mountain Lodge, Colorado
+STATUS:CANCELLED
+CATEGORIES:Company
+END:VEVENT
+
+BEGIN:VEVENT
+UID:new-event-111@company.com
+DTSTART:20250118T200000Z
+DTEND:20250118T210000Z
+DTSTAMP:20250102T120000Z
+SUMMARY:Client Demo
+DESCRIPTION:Demo the new features to potential client.\nPrepare slides and test environment.
+LOCATION:Client Office
+STATUS:CONFIRMED
+CATEGORIES:Sales,Demo
+END:VEVENT
+
+END:VCALENDAR

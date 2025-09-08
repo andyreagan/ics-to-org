@@ -1,0 +1,89 @@
+# Wednesday, January 15, 2025
+
+* Daily Standup (Moved)
+:PROPERTIES:
+:UID:           standup-123@company.com
+:LOCATION:      Zoom Room B
+:DESCRIPTION:   Quick sync with the development team - now 30 minutes later.\nDiscuss progress and blockers.
+:STATUS:        CONFIRMED
+:CATEGORIES:    Work,Development
+:END:
+<2025-01-15 Wed 15:00-15:30>
+
+My notes for standup:
+- Need to finish the authentication module
+- Blocked on database migration - talk to DevOps
+- Remember to demo the new feature
+
+# Thursday, January 16, 2025
+
+* Extended Project Planning Session
+:PROPERTIES:
+:UID:           project-meeting-456@company.com
+:LOCATION:      Conference Room B
+:DESCRIPTION:   Q1 planning for the new product launch - extended session.\nReview timeline, resources, and budget.
+:STATUS:        CONFIRMED
+:CATEGORIES:    Work,Planning
+:END:
+<2025-01-16 Thu 16:00-18:00>
+
+Important items to discuss:
+- Marketing wants earlier launch date
+- Need to allocate more QA resources
+- Budget review needed for external contractors
+
+Action items from last meeting:
+- [ ] Get cost estimates from vendors
+- [ ] Review technical architecture
+- [X] Set up project tracking
+
+# Friday, January 17, 2025
+
+* CANCELLED: Team Lunch
+:PROPERTIES:
+:UID:           recurring-lunch-999@company.com
+:LOCATION:      Downtown Bistro
+:DESCRIPTION:   Monthly team lunch at the local restaurant.
+:STATUS:        CANCELLED
+:CATEGORIES:    Social,Team
+:END:
+<2025-01-17 Fri 18:00-19:00>
+
+Looking forward to this!
+- Try their new seafood special
+- Discuss vacation plans with Sarah
+- Celebrate Mike's promotion
+
+# Saturday, January 18, 2025
+
+* Client Demo
+:PROPERTIES:
+:UID:           new-event-111@company.com
+:LOCATION:      Client Office
+:DESCRIPTION:   Demo the new features to potential client.\nPrepare slides and test environment.
+:STATUS:        CONFIRMED
+:CATEGORIES:    Sales,Demo
+:END:
+<2025-01-18 Sat 20:00-21:00>
+
+# Monday, January 20, 2025
+
+* CANCELLED: Company Retreat
+:PROPERTIES:
+:UID:           allday-event-789@company.com
+:LOCATION:      Mountain Lodge, Colorado
+:DESCRIPTION:   Annual company retreat in the mountains.\nTeam building and strategic planning.
+:STATUS:        CANCELLED
+:CATEGORIES:    Company
+:END:
+<2025-01-20 Mon>
+
+Packing list:
+- Hiking boots
+- Warm jacket
+- Laptop for strategy sessions
+- Camera for team photos
+
+Things to prepare:
+- Presentation on Q4 results
+- Ideas for team building activities
