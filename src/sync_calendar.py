@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
-import subprocess
-import re
-import os
-import tempfile
-import logging
-from datetime import datetime, timedelta
 import argparse
+import logging
+import os
+import re
+import subprocess
 import sys
+import tempfile
 from dataclasses import dataclass
+from datetime import datetime, timedelta
 
 # Set up logging
 logging.basicConfig(
@@ -136,7 +136,8 @@ def parse_org_events(content: str) -> dict[str, OrgEvent]:
                 current_content.append(line)
 
     # Save last event
-    if current_id is not None and current_scheduling is not None and current_title is not None:
+    required_fields = {current_id, current_scheduling, current_title}
+    if all(x is not None for x in required_fields):
         events[current_id] = OrgEvent(
             id=current_id,
             title=current_title,
@@ -147,7 +148,7 @@ def parse_org_events(content: str) -> dict[str, OrgEvent]:
     elif current_id:
         # Event has ID but no scheduling - log warning
         logger.warning(
-            "Skipping event '%s' (%s) - missing scheduling timestamp",
+            "Skipping event '%s' (%s) - missing scheduling timestamp or title",
             current_title,
             current_id,
         )

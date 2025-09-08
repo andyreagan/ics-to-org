@@ -1,4 +1,4 @@
-from sync_calendar import extract_agenda, update_agenda
+from src.sync_calendar import extract_agenda, update_agenda
 
 
 def test_extract_agenda():
