@@ -44,8 +44,8 @@ ics-sync --ics-url "https://outlook.office365.com/..." \
 Or run it directly with =uvx= (no installation needed):
 
 #+begin_src bash
-uvx ics-to-org --ics-url "https://calendar.google.com/calendar/ical/..." \
-               --org-file "calendar.org"
+uvx --from ics-to-org ics-sync --ics-url "https://calendar.google.com/calendar/ical/..." \
+                                  --org-file "calendar.org"
 #+end_src
 
 Command-line options:
@@ -123,10 +123,10 @@ ics-sync --ics-url "https://outlook.office365.com/owa/calendar/..." \
 *** Using with uvx (no installation required)
 #+begin_src bash
 # Run directly from PyPI without installing
-uvx ics-to-org --ics-url "https://example.com/calendar.ics" \
-               --org-file "my-calendar.org" \
-               --days-forward 60 \
-               --debug
+uvx --from ics-to-org ics-sync --ics-url "https://example.com/calendar.ics" \
+                                  --org-file "my-calendar.org" \
+                                  --days-forward 60 \
+                                  --debug
 #+end_src
 
 *** Using with uv run (in a project)
