@@ -2,6 +2,7 @@
 """Direct ICS to Org-mode synchronization without intermediate tools."""
 
 import argparse
+import gzip
 import logging
 import re
 import sys
@@ -177,7 +178,7 @@ def fetch_ics(url: str) -> Calendar:
             ),
             "Accept": "text/calendar,application/calendar+xml,text/plain,*/*",
             "Accept-Language": "en-US,en;q=0.9",
-            "Accept-Encoding": "gzip, deflate",
+            "Accept-Encoding": "gzip, deflate, identity",
             "Cache-Control": "no-cache",
             "Pragma": "no-cache",
         }
@@ -188,7 +189,10 @@ def fetch_ics(url: str) -> Calendar:
             with urlopen(request, timeout=30) as response:
                 # Check if we got HTML instead of ICS (common with auth issues)
                 content_type = response.headers.get("content-type", "").lower()
+                content_encoding = response.headers.get("content-encoding", "").lower()
                 logger.debug(f"Response content-type: {content_type}")
+                logger.debug(f"Response content-encoding: {content_encoding}")
+                logger.debug(f"Response headers: {dict(response.headers)}")
 
                 ics_data = response.read()
 
@@ -224,13 +228,50 @@ def fetch_ics(url: str) -> Calendar:
             logger.error(f"Unexpected error fetching calendar: {e}")
             raise
 
+    # Try to decompress if the data appears to be compressed
+    original_data = ics_data
+    try:
+        # Check if data looks like it might be gzipped (starts with gzip magic bytes)
+        if ics_data.startswith(b"\x1f\x8b"):
+            logger.info("Detected gzip compression, decompressing...")
+            ics_data = gzip.decompress(ics_data)
+        # Or if it contains binary garbage and doesn't start with BEGIN:VCALENDAR
+        elif not ics_data.startswith(b"BEGIN:VCALENDAR") and len(ics_data) > 100:
+            # Try gzip decompression as a fallback
+            try:
+                logger.info("Data doesn't look like ICS, trying gzip decompression...")
+                ics_data = gzip.decompress(ics_data)
+            except Exception:
+                # If gzip fails, try raw deflate
+                try:
+                    import zlib
+
+                    logger.info("Gzip failed, trying deflate decompression...")
+                    ics_data = zlib.decompress(ics_data)
+                except Exception:
+                    # If both fail, use original data
+                    ics_data = original_data
+    except Exception as e:
+        logger.warning(f"Decompression failed: {e}, using original data")
+        ics_data = original_data
+
     try:
         cal = Calendar.from_ical(ics_data)
         logger.info("Successfully parsed ICS calendar")
         return cal
     except Exception as e:
         logger.error(f"Error parsing ICS data: {e}")
+        # Show both original and potentially decompressed data info
+        logger.error(f"Original data length: {len(original_data)} bytes")
+        logger.error(f"Final data length: {len(ics_data)} bytes")
         logger.error(f"Data starts with: {ics_data[:200].decode('utf-8', errors='ignore')}")
+
+        # If data looks binary, give helpful message
+        if b"\x00" in ics_data[:100] or len([b for b in ics_data[:100] if b > 127]) > 10:
+            logger.error("Data appears to be binary/compressed. Try:")
+            logger.error("1. Right-click the calendar URL in browser and 'Save as...'")
+            logger.error("2. Make sure you're using the ICS URL, not the web calendar URL")
+            logger.error("3. Check if the file was downloaded correctly")
         raise
 
 

@@ -1,6 +1,6 @@
 [project]
 name = "ics-to-org"
-version = "1.0.2"
+version = "1.0.3"
 description = "Sync iCalendar events to org-mode files while preserving your notes"
 readme = "README.md"
 requires-python = ">=3.10"
