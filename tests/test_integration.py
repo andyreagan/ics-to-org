@@ -240,16 +240,16 @@ def test_date_formatting() -> None:
             content = f.read()
 
         # Test timed events
-        assert "<2025-01-15 Wed 14:00-14:30>" in content  # Standup
-        assert "<2025-01-16 Thu 16:00-17:00>" in content  # Project meeting
+        assert "<2026-01-14 Wed 14:00-14:30>" in content  # Standup
+        assert "<2026-01-15 Thu 16:00-17:00>" in content  # Project meeting
 
         # Test all-day events
-        assert "<2025-01-20 Mon>" in content  # Company retreat (no time)
+        assert "<2026-01-19 Mon>" in content  # Company retreat (no time)
 
         # Test date headers
-        assert "# Wednesday, January 15, 2025" in content
-        assert "# Thursday, January 16, 2025" in content
-        assert "# Monday, January 20, 2025" in content
+        assert "# Wednesday, January 14, 2026" in content
+        assert "# Thursday, January 15, 2026" in content
+        assert "# Monday, January 19, 2026" in content
 
     finally:
         Path(org_path).unlink()
