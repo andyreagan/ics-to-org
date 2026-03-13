@@ -407,12 +407,16 @@ def merge_events(existing: dict[str, OrgEvent], new: dict[str, OrgEvent]) -> dic
             merged[uid] = new_event
             logger.debug(f"Added new event: {new_event.summary}")
 
-    # Mark removed events as cancelled
+    # Mark removed events as cancelled (but only if they have user notes)
     for uid, old_event in existing.items():
         if uid not in new:
-            old_event.status = "CANCELLED"
-            merged[uid] = old_event
-            logger.debug(f"Marked as cancelled: {old_event.summary}")
+            # Only keep cancelled events if the user has added notes
+            if old_event.user_notes.strip():
+                old_event.status = "CANCELLED"
+                merged[uid] = old_event
+                logger.debug(f"Marked as cancelled (with notes): {old_event.summary}")
+            else:
+                logger.debug(f"Skipping cancelled event (no notes): {old_event.summary}")
 
     return merged
 

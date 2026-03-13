@@ -1,4 +1,4 @@
-# Wednesday, January 15, 2025
+# Wednesday, January 14, 2026
 
 * Daily Standup
 :PROPERTIES:
@@ -8,14 +8,14 @@
 :STATUS:        CONFIRMED
 :CATEGORIES:    Work,Development
 :END:
-<2025-01-15 Wed 14:00-14:30>
+<2026-01-14 Wed 14:00-14:30>
 
 My notes for standup:
 - Need to finish the authentication module
 - Blocked on database migration - talk to DevOps
 - Remember to demo the new feature
 
-# Thursday, January 16, 2025
+# Thursday, January 15, 2026
 
 * Project Planning Session
 :PROPERTIES:
@@ -25,7 +25,7 @@ My notes for standup:
 :STATUS:        CONFIRMED
 :CATEGORIES:    Work,Planning
 :END:
-<2025-01-16 Thu 16:00-17:00>
+<2026-01-15 Thu 16:00-17:00>
 
 Important items to discuss:
 - Marketing wants earlier launch date
@@ -37,7 +37,7 @@ Action items from last meeting:
 - [ ] Review technical architecture
 - [X] Set up project tracking
 
-# Friday, January 17, 2025
+# Friday, January 16, 2026
 
 * Team Lunch
 :PROPERTIES:
@@ -47,14 +47,14 @@ Action items from last meeting:
 :STATUS:        CONFIRMED
 :CATEGORIES:    Social,Team
 :END:
-<2025-01-17 Fri 18:00-19:00>
+<2026-01-16 Fri 18:00-19:00>
 
 Looking forward to this!
 - Try their new seafood special
 - Discuss vacation plans with Sarah
 - Celebrate Mike's promotion
 
-# Monday, January 20, 2025
+# Monday, January 19, 2026
 
 * Company Retreat
 :PROPERTIES:
@@ -64,7 +64,7 @@ Looking forward to this!
 :STATUS:        CONFIRMED
 :CATEGORIES:    Company
 :END:
-<2025-01-20 Mon>
+<2026-01-19 Mon>
 
 Packing list:
 - Hiking boots
