@@ -1,6 +1,6 @@
 # ics-to-org
 
-<a href="https://github.com/andyreagan/ics-to-org/actions/workflows/python-test-publish.yml"><img src="https://github.com/andyreagan/ics-to-org/actions/workflows/python-test-publish.yml/badge.svg" alt="Tests"></a> <a href="https://badge.fury.io/py/ics-to-org"><img src="https://badge.fury.io/py/ics-to-org.svg" alt="PyPI version"></a>
+<a href="https://github.com/andyreagan/ics-to-org/actions/workflows/ci.yml"><img src="https://github.com/andyreagan/ics-to-org/actions/workflows/ci.yml/badge.svg" alt="Tests"></a> <a href="https://badge.fury.io/py/ics-to-org"><img src="https://badge.fury.io/py/ics-to-org.svg" alt="PyPI version"></a>
 
 Sync iCalendar events to org-mode files while preserving your notes.
 
