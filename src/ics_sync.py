@@ -8,6 +8,7 @@ import re
 import sys
 from dataclasses import dataclass
 from datetime import datetime, timedelta
+from typing import Any
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
@@ -85,7 +86,7 @@ class OrgEvent:
         return "\n".join(lines)
 
 
-def _parse_categories(categories_obj) -> str | None:
+def _parse_categories(categories_obj: Any) -> str | None:
     """Extract a comma-separated category string from an icalendar CATEGORIES value.
 
     icalendar returns a list when CATEGORIES appears multiple times in a component.
@@ -94,10 +95,13 @@ def _parse_categories(categories_obj) -> str | None:
     if categories_obj is None:
         return None
     items = categories_obj if isinstance(categories_obj, list) else [categories_obj]
-    return ",".join(
-        item.to_ical().decode("utf-8") if hasattr(item, "to_ical") else str(item)
-        for item in items
-    ) or None
+    return (
+        ",".join(
+            item.to_ical().decode("utf-8") if hasattr(item, "to_ical") else str(item)
+            for item in items
+        )
+        or None
+    )
 
 
 def parse_ics_event(component: Event, default_timezone: str | None = None) -> OrgEvent | None:
