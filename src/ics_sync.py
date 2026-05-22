@@ -85,6 +85,21 @@ class OrgEvent:
         return "\n".join(lines)
 
 
+def _parse_categories(categories_obj) -> str | None:
+    """Extract a comma-separated category string from an icalendar CATEGORIES value.
+
+    icalendar returns a list when CATEGORIES appears multiple times in a component.
+    Calling str() on that list produces raw Python repr instead of the category names.
+    """
+    if categories_obj is None:
+        return None
+    items = categories_obj if isinstance(categories_obj, list) else [categories_obj]
+    return ",".join(
+        item.to_ical().decode("utf-8") if hasattr(item, "to_ical") else str(item)
+        for item in items
+    ) or None
+
+
 def parse_ics_event(component: Event, default_timezone: str | None = None) -> OrgEvent | None:
     """Parse an ICS VEVENT component into an OrgEvent."""
     try:
@@ -126,15 +141,7 @@ def parse_ics_event(component: Event, default_timezone: str | None = None) -> Or
         description = str(component.get("DESCRIPTION", "")) or None
         status = str(component.get("STATUS", "CONFIRMED"))
 
-        # Handle categories (can be a complex object)
-        categories_obj = component.get("CATEGORIES")
-        if categories_obj:
-            if hasattr(categories_obj, "to_ical"):
-                categories = categories_obj.to_ical().decode("utf-8")
-            else:
-                categories = str(categories_obj)
-        else:
-            categories = None
+        categories = _parse_categories(component.get("CATEGORIES"))
 
         return OrgEvent(
             uid=uid,
